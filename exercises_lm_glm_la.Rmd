@@ -4,27 +4,278 @@ author: "Steven Wink"
 date: "8 november 2016"
 output: html_document
 ---
+course part of master "Mathematics: Statistical Science for the Life and Behavioural Sciences, 2016-2017"  
+
+### linear models, general linear models and linear algebra  
+## This course is part of the master provided by the mathematics institute of the university of Leiden    
+
+## course material  
+* Fox, J (2008), Applied Regression Analysis and Generalized Linear Models, Sage  
+* Faraway, J.J. (2002), Practical Regression and Anova using R - web text: https://cran.r-project.org/doc/contrib/Faraway-PRA.pdf   
+* Faraway, J.J. (2005) Extending the Linear Model with R, Chapman & Hall/ CRC
+* Optional: McCulloch, C.E., Searle, S.R., and Neuhaus, J.M. (2008), Generalized, Linear, and Mixed Models, Wiley  
+
+Note to self: There are newer versions of these books, check if OK to use the newer versions  
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Exercises day 1  
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r install load and explore packages faraway and car }
+install.packages(c("faraway", "car"))
+require(faraway)
+require(car)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+ls("package:faraway")
+ls("package:car")
+?qqPlot
+help(package = "faraway") # functions and datasets for Books by Julian Faraway
+help(package = "car") # companion to applied regression: Functions and Datasets to Accompany J. Fox and S. Weisberg, An R Companion to Applied Regression, Second Edition, Sage, 2011.
 
-```{r cars}
-summary(cars)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r 2. Follow analysis pages 10-13}
+data(pima)
+head(pima)
+summary(pima)
+sort(pima$diastolic)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+ pima$diastolic[pima$diastolic == 0] <- NA
+ pima$glucose[pima$glucose == 0] <- NA
+ pima$triceps[pima$triceps == 0] <- NA
+ pima$insulin[pima$insulin == 0] <- NA
+ pima$bmi[pima$bmi == 0] <- NA
+
+pima$test <- factor(pima$test)
+summary(pima) 
+hist(pima$diastolic)
+plot(density(pima$diastolic,na.rm=TRUE))
+plot(sort(pima$diastolic),pch=".")
+plot(diabetes ~ diastolic, pima)
+plot(diabetes ~ test,pima)
+
+pairs(pima, col = pima$test)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r Exercise 3 faraway book }
+
+# a numeric and graphical summary of prostate dataset
+head(prostate)
+summary(prostate)
+pairs(prostate)
+
+```
+
+
+```{r Exercise D2.1 (fox) }
+# a)
+data(Sahlins)
+head(Sahlins)
+plot( Sahlins$acres ~Sahlins$consumers)
+
+# weak positive linear relation
+# two outliers, at ~(1.2, 3.1) and at ~(1.6, 1.3)
+
+# b)
+Sahlins$group <- c(rep("g1", 7), rep("g2", 6), rep("g3", 7))
+groupMeans <-lapply( 
+    split(Sahlins, Sahlins$group), 
+    function(x) colMeans(x[, 1:2])) 
+groupMeans <- t( as.data.frame(groupMeans) )
+points(groupMeans, col = c("blue", "green", "red"))
+legend( 2.1,3, legend = rownames(groupMeans), fill =  c("blue", "green", "red"), pch = ".")
+
+# connect the group means with a simple nonparametric regression line:
+lines(groupMeans)
+# does not help to interpret relation between these two variables, no.
+
+# c)
+# remove outliers from g1 and g2:
+
+Sahlins <- Sahlins[-4, ]
+rownames(Sahlins) <- 1: nrow(Sahlins)
+Sahlins <- Sahlins[-11, ]
+rownames(Sahlins) <- 1: nrow(Sahlins)
+
+
+groupMeans <-lapply( 
+    split(Sahlins, Sahlins$group), 
+    function(x) colMeans(x[, 1:2])) 
+groupMeans <- t( as.data.frame(groupMeans) )
+plot( Sahlins$acres ~Sahlins$consumers)
+points(groupMeans, col = c("blue", "green", "red"))
+
+legend( 2.1,3, legend = rownames(groupMeans), fill =  c("blue", "green", "red"), pch = ".")
+lines(groupMeans)
+# shifted away from outliers, relation between variables now more apparent
+
+# d) locally weighted regression
+lines( lowess( Sahlins$acres ~ Sahlins$consumers), col = "pink") 
+
+```
+
+```{r D2.2 Robey}
+# a)
+data(Robey)
+head(Robey)
+plot( Robey$tfr ~ Robey$contraceptors)
+
+# strong negative linear relation
+# Not really
+
+# b)
+Robey <- Robey[ order(Robey$contraceptors), ]
+Robey$group <- c(rep("g1", 17), rep("g2", 16), rep("g3", 17))
+groupMeans <-lapply( 
+    split(Robey, Robey$group), 
+    function(x) colMeans(x[, 3:2])) 
+
+groupMeans <- t(as.data.frame(groupMeans) )
+
+points(groupMeans, col = c("blue", "green", "red"))
+
+legend( 60,7, legend = rownames(groupMeans), fill =  c("blue", "green", "red"), pch = ".")
+
+# connect the group means with a simple nonparametric regression line:
+lines(groupMeans)
+# does not help to interpret relation between these two variables, no.
+
+# c)
+# remove outliers from g1 and g2:
+
+
+# d) locally weighted regression
+lines( lowess( Robey$tfr ~ Robey$contraceptors), col = "pink") 
+
+```
+
+chapter 3
+```{r D3.1 }
+# distributions. Symmetry, skewness, non-normality/ apparent normality, number of modes and presence or absence of unusual values
+# histogram, qq plots boxplots scatterplots, pairs
+head(Freedman)
+hist(Freedman$population) # right tailed, no normality
+hist(Freedman$nonwhite)# right tailed, no normality
+hist(Freedman$density)# right tailed, no normality
+hist(Freedman$crime) # normally distr, symmetrical
+
+qqPlot(Freedman$population)# heavy right tailed. light left tailed
+qqPlot(Freedman$nonwhite)#heavy right tailed. light left tailed
+qqPlot(Freedman$density)# heavy right tailed. light left tailed
+qqPlot(Freedman$crime) # normal
+
+boxplot(Freedman) # same
+plot(Freedman)
+pairs(Freedman)
+
+```
+
+
+```{r exerc 7 }
+rsample <- rnorm(20, mean = 170, sd = 10)
+qqPlot(rsample)
+rsample <- rnorm(200, mean = 170, sd = 10)
+qqPlot(rsample)
+
+```
+
+
+```{r D3.4}
+head(Burt)
+iqLow <- lm(IQbio ~IQfoster, data = Burt[Burt$class =="low",])
+iqMedium <- lm(IQbio ~IQfoster, data = Burt[Burt$class =="medium",])
+iqHigh <- lm(IQbio ~IQfoster, data = Burt[Burt$class =="high",])
+plot(Burt$IQfoster, Burt$IQbio)
+abline(iqLow, col = "red")
+abline(iqMedium, col = "green")
+abline(iqHigh, col = "blue")
+
+# yes, the slopes are too similar for a random sample dataset
+```
+
+Chapter 4
+
+```{r D4.1 }
+head(Freedman)
+#population: Total 1968 population, 1000s.
+#nonwhite: Percent nonwhite population, 1960.
+#density: Population per square mile, 1968.
+#crime: Crime rate per 100,000, 1969.
+
+# nonwhite and crime are proportions
+
+plot(density(Freedman$population, na.rm = TRUE))
+qqPlot(Freedman$population)
+
+# mainly shrink the right tail and expand the close to 0 values.
+plot(density(log(Freedman$population), na.rm = TRUE))
+qqPlot(log(Freedman$population))
+# log is still too skewed. Try a different power rule
+# Box-Cox transformation: with p 0 < 1
+p <- -0.8
+plot(density( 
+  ((Freedman$population^p -1) / p), na.rm = TRUE))
+
+qqPlot(((Freedman$population^p -1) / p))
+
+p <- -0.8
+plot(density( 
+  Freedman$population^p , na.rm = TRUE))
+qqPlot(Freedman$population^p)
+
+# non white
+
+
+plot(density(Freedman$nonwhite, na.rm = TRUE))
+qqPlot(Freedman$nonwhite)
+
+plot(density(log(Freedman$nonwhite), na.rm = TRUE))
+qqPlot(log(Freedman$nonwhite))# log is fine
+
+# now consider a logit, since it is a proportional value
+
+plot(density(
+      (Freedman$nonwhite/100) / ( 1- (Freedman$nonwhite)/100)
+  , na.rm = TRUE))
+
+qqPlot( (Freedman$nonwhite/100) / ( 1- (Freedman$nonwhite)/100))# log is fine
+# no..
+
+# density
+
+plot(density(Freedman$density, na.rm = TRUE))
+qqPlot(Freedman$density)
+
+plot(density(log(Freedman$density), na.rm = TRUE))
+qqPlot(log(Freedman$density))
+# log fine
+
+# crime
+plot(density(Freedman$crime, na.rm = TRUE)) # already normal
+qqPlot(Freedman$crime)
+
+# already good
+
+# consider using logit transformation (0-1 --> -inf - inf)
+
+plot(density(
+      (Freedman$crime/100000) / ( 1- (Freedman$crime)/100000)
+  , na.rm = TRUE))
+
+qqPlot( (Freedman$crime/100000) / ( 1- (Freedman$crime)/100000))# log is fine
+
+# was not a problem in this case.
+
+
+```
+
+
+```{r UN}
+head(UN)
+
+```
+
