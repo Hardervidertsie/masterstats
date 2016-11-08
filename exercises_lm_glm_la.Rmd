@@ -21,7 +21,7 @@ Note to self: There are newer versions of these books, check if OK to use the ne
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Exercises day 1  
+## Exercises week 1 day 1  
 
 ```{r install load and explore packages faraway and car }
 install.packages(c("faraway", "car"))
@@ -239,11 +239,11 @@ qqPlot(log(Freedman$nonwhite))# log is fine
 # now consider a logit, since it is a proportional value
 
 plot(density(
-      (Freedman$nonwhite/100) / ( 1- (Freedman$nonwhite)/100)
+      log(Freedman$nonwhite/100) / ( 1- (Freedman$nonwhite)/100)
   , na.rm = TRUE))
 
-qqPlot( (Freedman$nonwhite/100) / ( 1- (Freedman$nonwhite)/100))# log is fine
-# no..
+qqPlot( log(Freedman$nonwhite/100) / ( 1- (Freedman$nonwhite)/100))# log is fine
+# also works
 
 # density
 
@@ -263,12 +263,12 @@ qqPlot(Freedman$crime)
 # consider using logit transformation (0-1 --> -inf - inf)
 
 plot(density(
-      (Freedman$crime/100000) / ( 1- (Freedman$crime)/100000)
+      log(Freedman$crime/100000) / ( 1- (Freedman$crime)/100000)
   , na.rm = TRUE))
 
-qqPlot( (Freedman$crime/100000) / ( 1- (Freedman$crime)/100000))# log is fine
+qqPlot( log(Freedman$crime/100000) / ( 1- (Freedman$crime)/100000))# log is fine
 
-# was not a problem in this case.
+# logit made it worse
 
 
 ```
@@ -276,6 +276,94 @@ qqPlot( (Freedman$crime/100000) / ( 1- (Freedman$crime)/100000))# log is fine
 
 ```{r UN}
 head(UN)
+help(UN)
+boxplot(UN$infant.mortality) # fraction infant deaths (per 1000)
+
+qim <- quantile(UN$infant.mortality, na.rm=TRUE)
+
+ratioFun <- function(x) { 
+qim <- quantile(x, na.rm = TRUE)
+  result <-  (qim[4] - qim[3]) / (qim[3]-qim[2])
+  names(result) <- NULL
+  return(result)
+  }
+
+ratioFun(UN$infant.mortality) # 2
+
+# logit
+p <- UN$infant.mortality /1000
+ratioFun(log( p / (1-p)) ) # 0.88
+boxplot(log( p / (1-p)))
+plot(density(log( p / (1-p)), na.rm=TRUE))
+plot(density(p, na.rm=TRUE))
+
+# Box-Cox transformation
+UN$infant.mortality
+
+boxCoxFun <- function(x, p) {
+transfx <-  (x^p - 1 / p)
+transfx
+}
+
+for(i in 1:10){
+  p <- seq(from = -1, to =1 , length.out=10)[i]
+ratioOut <- ratioFun(
+  boxCoxFun(UN$infant.mortality, p)
+
+  )
+print(paste0("p = ", p))
+print(ratioOut)
+}
+
+boxplot(boxCoxFun(UN$infant.mortality, 0.11))
+plot(density(boxCoxFun(UN$infant.mortality, 0.11), na.rm=TRUE))
+
+
 
 ```
+
+
+
+```{r 11 Prestige }
+
+head(Prestige)
+plot(Prestige$prestige ~ Prestige$income)
+lines(lowess(Prestige$prestige ~ Prestige$income))
+
+# 4rth quadrant: downsize y, increase x
+plot(Prestige$prestige ~ sqrt(Prestige$income))
+lines(lowess(Prestige$prestige ~ sqrt(Prestige$income)))
+lm(Prestige$prestige ~ sqrt(Prestige$income))
+abline(a = 2.17, b = 0.564, lty = 2)
+
+``` 
+
+```{r 12 }
+head(UN)
+plot(UN$infant.mortality ~ UN$gdp)
+plot(log(UN$infant.mortality) ~ log(UN$gdp))
+abline(lm(log(UN$infant.mortality) ~ log(UN$gdp)), lty = 2)
+UN <- na.omit(UN)
+lines(lowess(log(UN$infant.mortality) ~ log(UN$gdp)))
+
+``` 
+
+
+```{r 13}
+
+x <- seq(0.01, 0.99, length.out=100)
+ylogit <- log( x / (1-x) )
+plot(x,ylogit) # -inf and + inf near 0 and 1, respectively 
+
+yprobit <- qnorm(x)
+
+points(x, yprobit, col  ="red")
+
+yarcsinsqrt <- (asin(sqrt(x)))
+
+points(x,yarcsinsqrt, col = "green")
+```
+
+
+## Exercises week 1 day 2  
 
