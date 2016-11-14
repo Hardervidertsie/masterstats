@@ -422,12 +422,146 @@ r <- sqrt(RSq) # slope of regression is positive
 head(Freedman)
 # response variable: crime
 # explanatory variables: population & nonwhite & density
-plot( crime ~ log(population), data = Freedman)
-lmo <- lm( crime ~ log(population), data = Freedman  )
+plot( crime ~ (population), data = Freedman)
+lmo <- lm( crime ~ population, data = Freedman  )
 abline(lmo) 
 coefficients(lmo)
 summary(lmo)
+deviance(lmo)
+length(predict(lmo))
+indNA <- is.na(Freedman$crime) | is.na(Freedman$population)
 
+RSS <- sum((predict(lmo) - Freedman$crime[!indNA])^2) 
+
+k=1
+n = sum(!indNA)
+SE <- sqrt( RSS / (n - (k+1)))  # standard deviation of residuals
+TSS <- sum((Freedman$crime[!indNA] - mean(Freedman$crime[!indNA]))^2)
+RegSS <- TSS - RSS
+
+Rsq <- RegSS / TSS
+r <- sqrt(Rsq)
+
+
+```
+
+
+```{r D5.5}
+head(States)
+?States
+# response variable: pay (average teachers pay per state)
+# explanatory variables: pop, SATV, SATM, percent & dollars
+
+# calculate least square regression of the response on the explanatory variables
+# interprete the A and Bj's obtained
+# calculate standard error of the regression SE
+# calculate the multiple-correlation coefficient
+
+
+# first the single regressions for this dataset
+
+plot( pay ~ dollars, data = States)
+lmo <- lm( pay ~ dollars, data = States  )
+abline(lmo) 
+(RSS <- sum((predict(lmo) - States$pay)^2) )
+k=1
+n = nrow(States)
+(SE <- sqrt( RSS / (n - (k+1))) ) # standard deviation of residuals
+(TSS <- sum((States$pay - mean(States$pay))^2))
+(RegSS <- TSS - RSS)
+
+(Rsq <- RegSS / TSS)
+(r <- sqrt(Rsq))
+summary(lmo)
+# summary single regressors:
+# pop: intercept: 29,  slope: 3.59e-4, SE: 5, r: 0.368
+# SATV:  intercept: 73.8, slope: -0.096, SE: 4.46, r: 0.56
+#SATM: intercept: 68, slope: -0.0745 , SE:4.69  , r: 0.485 
+#percent intercept: 26, slope: 0.146, SE: 4.014, r: 0.66
+#dollars: intercept 14 , slope: 3.27 , SE: 2.84 , r: 0.847 
+
+# now for the multiple regression
+
+lmo <- lm( pay ~ pop + SATV + SATM + percent + dollars, data = States  )
+summary(lmo)
+(RSS <- sum((predict(lmo) - States$pay)^2) )
+k=5
+n = nrow(States)
+
+(SE <-   sqrt( RSS / (n - (k+1))) ) # standard deviation of residuals
+
+(TSS <- sum((States$pay - mean(States$pay))^2))
+(RegSS <- TSS - RSS)
+
+(Rsq <- RegSS / TSS)
+(r <- sqrt(Rsq))
+
+# the intercept is different - there is 1 slope for the multiple regressor model
+# the regression coefficients of the regressors are different compared to the single regression slopes.
+# the standard deviation of the residuals is lower (as expected since more flexible model)
+# The multiple correlation coefficient r is higher
+
+```
+
+```{r 5.4 }
+#a) When X' = X - 10
+# A = Ybar - B*(Xbar-10) ->
+# A = Ybar - B*Xbar +10B
+
+#A' is A + 10*B   
+#B' is B
+#SE' is SE  (sqrt(RSS/(n-(k+1))) & RSS = sum(Yhat - Y) ^2) and y and yhats do not change
+#r' since r = sqrt( RegSS/ TSS ) and RegSS = TSS - RSS. TSS = sum((y-yhats)^2) is same and RSS also
+# r =r`
+
+# for X' = 10X
+# A = A' : intecept is unchanged
+# B' = 1/10 * B: the slopes are 10-fold lower
+#SE`= SE unchanged
+#r' = r also unchanged
+
+# for X' = 10*(X+1)
+#A' is A + 10*B
+# SE' and r' unchanged
+
+
+#b) Y`` = Y + 10
+# A`` = A + 10
+# B`` = B unit-change of y per unit-change of x remains the same
+# SE`` = SE = sqrt( RSS/ n - (k+1)); RSS = sum((Yhat`` - Y+10)^2); ends up in 10-10
+# r`` = r
+
+# Y`` = 5Y
+# B`` = 5*B For every unit change in X, the Y changes 5 times as much
+# A`` = 5*Ybar - 5*B*Xbar
+# SE`` = 5*SE  ; RSS`` = sum((5*Yhat - 5*Y)^2) = 5^2 * RSS; SE = sqrt(25*RSS/(n-(k+1)))
+# r`` = r;  RegSS/ TSS; RegSS = TSS - RSS. TSS = sum((5*Y-5*Ybar)^2) so cancels out
+
+# Y``` = 5Y + 10
+
+# A`` = 5*Yvar - 5*B*Xbar + 10
+# B`` = 5*B
+# SE`` = 5*SE
+# r`` = r
+
+
+
+# c) with linear transformation of X: alpha*X + beta
+# intercept changes by: A = A - beta
+# slope changes by 1/alpha
+# SE never changes by linear transformations on X
+#r never changes by linear transformations on X
+
+# with linear transformation of Y: alpha*Y + beta
+# intercept changes by: A = A + beta
+#slope changes by: alpha*B
+# SE changes by alpha*SE
+# r does not change
+
+```
+
+
+```{r 5.7}
 
 
 ```
