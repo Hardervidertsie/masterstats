@@ -366,4 +366,68 @@ points(x,yarcsinsqrt, col = "green")
 
 
 ## Exercises week 1 day 2  
+Exercises chapter 5
+```{r 1 }
 
+# a) by hand: B = 3/2, A = 1
+# b)
+XY <- data.frame(X=c(1, 2, 3), Y = c(2, 5, 5))
+# A = Ybar - B*Xbar
+# B = sum( (XY$X - mean(XY$X)) * (XY$Y - mean(XY$Y)) )
+B <- sum( (XY$X - mean(XY$X)) * (XY$Y - mean(XY$Y)) ) / sum( (XY$X - mean(XY$X))^2 )
+A <- mean(XY$Y) - B * mean(XY$X)
+
+# c)
+lm(Y~X, data = XY)
+
+```
+
+
+```{r D5.1}
+#a) 
+Sahlinsub <- Sahlins[ c(1,5,10,15,20),]
+plot(Sahlinsub$consumers, Sahlinsub$acres)
+#b)
+SahRegr <- lm( Sahlinsub$acres ~ Sahlinsub$consumers)
+abline( lm( Sahlinsub$acres ~ Sahlinsub$consumers) )
+# A is the intercept, when zero consumers are in a household the acres of land of the household estimation
+# Per unit of consumer per gardener, an increase of 0.4 acres per gardener exists based on the model of this subset of the data.
+
+#c)
+n = nrow(Sahlinsub)
+k = 1
+
+Yhat <- predict(SahRegr)
+A <- coefficients(SahRegr)[1] 
+B <- coefficients(SahRegr)[2] 
+A + B* Sahlinsub$consumers
+RSS <- sum((Sahlinsub$acres - Yhat)^2)
+(SE <- sqrt( RSS / ( n - (k+1) )))
+RSS <- sum((Sahlinsub$acres - Yhat)^2)
+
+ TSS <- sum((Sahlinsub$acres - mean( Sahlinsub$acres ))^2) # from the null model with only intercept
+ RSS
+ 
+RegSS <- TSS - RSS
+RSq <- RegSS / TSS 
+r <- sqrt(RSq) # slope of regression is positive
+ # the Standard error of the regression is the goodness of fit of the regression to the data. 
+
+``` 
+
+
+```{r D5.3}
+# find A, B, SE and r
+?Freedman
+head(Freedman)
+# response variable: crime
+# explanatory variables: population & nonwhite & density
+plot( crime ~ log(population), data = Freedman)
+lmo <- lm( crime ~ log(population), data = Freedman  )
+abline(lmo) 
+coefficients(lmo)
+summary(lmo)
+
+
+
+```
