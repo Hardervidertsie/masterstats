@@ -562,6 +562,46 @@ n = nrow(States)
 
 
 ```{r 5.7}
+head(Prestige)
+#a) 
+# first the `normal` B1 regression slope:
+lmoN <- lm(prestige ~ education + income + women, data = Prestige)
+# slope for education is ~ 4.1867
+# regress prestige on X2:X3 (the other explanatory residuals than the one we will calc the slope on)
+lmoR <- lm(prestige ~ income + women, data = Prestige)
+# regress X1 on the other regressors:
+regrX2X3 <- lm(education ~ income + women, data = Prestige)
+# regres the residuals of y on the residuals of the regressors:
+regrRes <- lm( residuals(lmoR) ~ residuals(regrX2X3))
+# the slope is 4.187 which is consistent with the `normal` regression
 
+#b)
+# because the residuals of regressor and regressed vary around mean zero
+
+#c)
+# "B1 by this method is the effect of X1 on Y after the influence of other regressors on Y have been removed"
+# since the residuals after the regression of the X2 and X3 on Y is the remainder of variation of Y after removal of influence on X2 and X3 on Y, and the residuals of regression of X2 and X3 on X1 removes the influence of X2 and X3 on X1, this would indeed be logical to say.
+``` 
+
+```{r exercise_4}
+
+head(prostate)
+# response variable: lpsa, predictor lcavol
+# residuals standard deviation:
+lmo <- lm( lpsa ~ lcavol, data = prostate)
+summary(lmo)$r.squared
+summary(lmo)$sigma
+# res stand deviation: 0.7875
+# rs = 0.5394
+lmo2 <- lm( lpsa ~ lcavol + lweight, data = prostate)
+lmo3 <- lm( lpsa ~ lcavol + lweight + svi, data = prostate)
+lmo4 <- lm( lpsa ~ lcavol + lweight + svi + lbph, data = prostate)
+lmo5 <- lm( lpsa ~ lcavol + lweight + svi + lbph + age, data = prostate)
+lmo6 <- lm( lpsa ~ lcavol + lweight + svi + lbph + age + lcp, data = prostate)
+lmo7 <- lm (lpsa ~ lcavol + lweight + svi + lbph + age + lcp + pgg45, data = prostate)
+lmo8 <- lm( lpsa ~ lcavol + lweight + svi + lbph + age + lcp + pgg45 + gleason, data = prostate)
+plot()
 
 ```
+
+
