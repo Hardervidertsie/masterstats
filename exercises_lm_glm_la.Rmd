@@ -600,8 +600,137 @@ lmo5 <- lm( lpsa ~ lcavol + lweight + svi + lbph + age, data = prostate)
 lmo6 <- lm( lpsa ~ lcavol + lweight + svi + lbph + age + lcp, data = prostate)
 lmo7 <- lm (lpsa ~ lcavol + lweight + svi + lbph + age + lcp + pgg45, data = prostate)
 lmo8 <- lm( lpsa ~ lcavol + lweight + svi + lbph + age + lcp + pgg45 + gleason, data = prostate)
-plot()
+SE <- c(summary(lmo)$sigma, summary(lmo2)$sigma, summary(lmo3)$sigma, summary(lmo4)$sigma
+        ,summary(lmo5)$sigma,summary(lmo6)$sigma,summary(lmo7)$sigma,summary(lmo8)$sigma)
+
+Rsq <- c( summary(lmo)$r.squared, summary(lmo2)$r.squared,summary(lmo3)$r.squared,summary(lmo4)$r.squared,summary(lmo5)$r.squared,summary(lmo6)$r.squared,summary(lmo7)$r.squared,summary(lmo8)$r.squared)
+plot(1:8, SE, ylim = c(0.4,1), main =c("SE resid (dots)", "Rsq (red)"))
+lines(1:8, Rsq, col = 'red')
+
+```
+
+```{r exercise_5}
+plot( lpsa ~ lcavol, data = prostate)
+lmo <- lm( lpsa ~ lcavol, data = prostate)
+abline(lmo, col ="red")
+lmo2 <- lm( lcavol ~ lpsa, data = prostate)
+abline(lmo2, col ="blue") # need to switch the y and x axis;
+lines(x = lmo2$fitted.value, y = prostate$lpsa, col = "green")
+# looks like they intercept at the corresponding means. Makes sense because the liner regressions do pass through the means of Y and X.
+points(mean(prostate$lcavol), y = mean(prostate$lpsa), pch = 10, col = "red", cex = 2)
+      
+``` 
+
+```{r exercise_6.6}
+#a) 
+# V(B)=1/sum(xi-x_bar)^2  * SE_resid the denominator is increased by 100 times thus the sqrt (to get the SD) is 10 times, the standard deviation of the errors do not change because these are the residuals in the y-direction. Thus the V(B`) is 10 times lower than v(B)
+# however the t0` = B`/SE(B`) is the same, as both the B (coefficient) and SE decrease by a factor of 10
+
+#b) 
+#Now the y is linearly transformed; Y`` = 5(Y + 2)
+# the variance of the residuals is 25 times larger (the vertical shift doesnt matter as (y + 2) - (y_hat + 2) the 2 dissapears. the SE(B``) under this transformation thus leads to 5X higher value.
+# for the t0`` = B`` / SE(B``): the B (slope) is 5 times large, as is the SE, thus again no change. 
+
+#c)
+# under linear transformation of X` = aX + b, with B the slope; the SE(B`) = 1/a * SE(B)
+# under linear transformation of Y` = aY + b, with B the slope; the SE(B``) = a*SE(B)
+# the t0 is invariant to linear transformations of X and/ or Y
+
+```
+
+```{r exercise_6.7}
+# fit the full model and fit a reduced model. Compare the difference in RegSS in an F-test
+# F = [] (RegSS - RegSS0) / q ] / [ RSS / ( n - (k+1)) ]
+# think of the single model case with F = RegSS/k  / RSS/(n-(k+1)): with the H0 that slope is zero the RegSS is equal to the Residual SS. RegSS = SS - RSS, or RegSS = sum(Yhat-Ybar)^2 (residuals compared to mean)
+# likely only meaningfull with identical units of the explanatory variables of which the coefficients are tested for equality.
+
+# perform the F-test `manually` and with anova function in R;
+
+#H0: b1=b2
+head(Prestige)
+
+lmoF <- lm(prestige ~ education + income, data = Prestige)
+# create eduction+income column;
+Prestige$eduincome <- Prestige$education + Prestige$income
+lmo0 <- lm( prestige ~ eduincome, data = Prestige )
+anova(lmoF, lmo0) # F = 140.42
+
+# manually:
+names(summary(lmoF))
+names(lmoF)
+RSS <- deviance(lmoF) # RSS
+RegSS <- sum((lmoF$fitted.values - mean(Prestige$prestige))^2) # RegSS
+TSS <- sum((Prestige$prestige - mean(Prestige$prestige))^2) # TSS
+TSS-RSS == RegSS
+
+RegSS0 <- sum((lmo0$fitted.values - mean(Prestige$prestige))^2)
+q = 1 # difference of 1 variable between the null and full model
+n = nrow(Prestige)
+k= 2
+(Fmanual <- ( (RegSS - RegSS0 ) / q )/   ( RSS/(n-(k+1))   ) ) # 140.42
+
+# We can safely reject the hypothesis of equal coefficients; because the null model is significanly different than the full model: compared to the residual SS there is a huge difference in the regressed/ explained variance of Y using equal coefficients as compared to non-equal.
+
+```
+
+```{r faraway_text28_33 }
+
+data(savings)
+head(savings)
+
+g <- lm( sr ~ pop15 + pop75 + dpi + ddpi, data = savings )
+summary(g)
+
+sum((savings$sr - mean(savings$sr))^2) # TSS
+983.628
+sum(g$residuals^2)
+650.713
+TSS - RSS / 4   /   RSS/n  # F statistic
+# TSS - RSS is the amount explained by full model.
+
+g2 <- lm(sr ~ pop75 + dpi + ddpi, data = savings)
+sum(g2$residuals^2)
+797.7 - 650/ 1  # change in RSS
+147.7 / (650.7 /45)
+1- pf(10.167, 1,45)
+
+
+```
+
+```{r farawayBook_51}
+head(sat)
+lmo <- lm( total ~ expend + ratio + salary, data = sat)
+# test beta_salary = 0
+lmo0 <- lm( total ~ expend + ratio, data = sat)
+anova(lmo, lmo0)
+# fail to reject. Likely can be removed.
+
+# test all coef are 0
+TSS <- sum((sat$total - mean(sat$total))^2) 
+RSS <- deviance(lmo)
+sum(summary(lmo)$residuals^2)
+(Fstat <- ((TSS - RSS)/3)  /  (RSS/ (50-(3+1)) ) )
+1-pf(Fstat, 3, 46)
+# the model does explain a part of the response variable as we can safely reject the null of zero coefficients
+summary(lmo)
+# yes, because we can reject the null that all coeff are zero as p = < 0.05
+lmoT <- lm(total ~ expend + ratio + salary + takers, data = sat)
+anova(lmoT, lmo)
+# F >> 1. The change in residuals is large compared to full model resi. It is worth keeping takers in the model
+plot(sat$takers, sat$total)
+
+(TSS - deviance(lmoT) ) / 4 / (deviance(lmoT)/45)
+summary(lmoT)
+
+(summary(lmoT))
+tstat <- -2.9045/0.2313
+pt(tstat^2, 45)  #?
+
 
 ```
 
 
+```{r D6.2}
+
+
+```
