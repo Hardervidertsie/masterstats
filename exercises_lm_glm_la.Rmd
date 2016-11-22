@@ -732,5 +732,43 @@ pt(tstat^2, 45)  #?
 
 ```{r D6.2}
 
+head(Sahlins)
+plot(acres ~ consumers, data = Sahlins)
+lmo <- lm(acres ~ consumers, data = Sahlins)
+abline(lmo)
+
+summary(lmo) #p-value: 0.1026. slope: std error:0.3002, t=1.720, p = 0.10263.
+#intercept se = 0.4684, t = 2.937 p = 0.00881
+# 'manual' 
+# Var(B) = 1 / (sum(X - Xbar)^2)    *   SE_res^2
+ 
+X1 <- Sahlins$consumers
+Y <- Sahlins$acres
+Yhat <- lmo$fitted.values
+n <- nrow(Sahlins)
+k=1
+# sd of the slope:
+
+SE_resid <- sqrt( sum( (Y - Yhat )^2 ) / ( n -(k+1))  ) 
+(SD_B <- sqrt( 1 / sum( (X1 - mean(X1))^2) ) * SE_resid )# 0.3002335
+summary(lmo)
+# now the t-value;  
+tval <- (0.5163 - 0) / SD_B
+2*(1-pt(tval, 20-2)) # indeed 0.10264
+# without the 4th observation
+Sahlinssub <- Sahlins[-4,]
+lmosub <- lm(acres ~ consumers, data = Sahlinssub)
+summary(lmosub) # indeed now the fit seems reasonable, an outlier can influence the conclusion of a fit.
 
 ```
+
+Skipped optional exercises D6.3 & D6.5 due to time limitations
+
+## Exercises week 2  
+```{r }
+
+
+
+
+
+``` 
